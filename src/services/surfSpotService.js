@@ -132,9 +132,14 @@ export const surfSpotService = {
                 'swellPeriod'
             ].join(',');
 
+            const apiKey = process.env.REACT_APP_STORMGLASS_API_KEY;
+            if (!apiKey) {
+                throw new Error('Stormglass API key not found in environment variables');
+            }
+
             const res = await fetch(
                 `https://api.stormglass.io/v2/weather/point?lat=${spot.latitude}&lng=${spot.longitude}&params=${params}`,
-                { headers: { Authorization: "3066740c-7f6e-11ef-8a8f-0242ac130004-30667470-7f6e-11ef-8a8f-0242ac130004" } }
+                { headers: { Authorization: apiKey } }
             );
             if (!res.ok) throw new Error(`Status ${res.status}`);
             const json = await res.json();

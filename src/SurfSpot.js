@@ -4,7 +4,10 @@ export default class SurfSpot {
         this.name = name;
         this.lat = lat;
         this.lng = lng;
-        this.apiKey = "3066740c-7f6e-11ef-8a8f-0242ac130004-30667470-7f6e-11ef-8a8f-0242ac130004";
+        this.apiKey = process.env.REACT_APP_STORMGLASS_API_KEY;
+        if (!this.apiKey) {
+            throw new Error('Stormglass API key not found in environment variables');
+        }
     }
 
     async getForecast() {
