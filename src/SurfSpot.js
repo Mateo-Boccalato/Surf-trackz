@@ -4,7 +4,7 @@ export default class SurfSpot {
         this.name = name;
         this.lat = lat;
         this.lng = lng;
-        this.apiKey = process.env.REACT_APP_STORMGLASS_API_KEY;
+        this.apiKey = "3066740c-7f6e-11ef-8a8f-0242ac130004-30667470-7f6e-11ef-8a8f-0242ac130004";
     }
 
     async getForecast() {
@@ -19,7 +19,7 @@ export default class SurfSpot {
 
         const res = await fetch(
             `https://api.stormglass.io/v2/weather/point?lat=${this.lat}&lng=${this.lng}&params=${params}`,
-            { headers: { Authorization: "70b18d1e-e830-11ef-806a-0242ac130003-70b18d8c-e830-11ef-806a-0242ac130003" } }
+            { headers: { Authorization: this.apiKey } }
         );
         if (!res.ok) throw new Error(`Status ${res.status}`);
         const json = await res.json();
