@@ -19,10 +19,15 @@ const ProtectedRoute = ({ children }) => {
 const MainContent = () => {
     return (
         <Box pt="80px" px={4} maxW="1200px" mx="auto">
+            <SurfSpotsList />
+        </Box>
+    );
+};
+
+const AddSpotContent = () => {
+    return (
+        <Box pt="80px" px={4} maxW="1200px" mx="auto">
             <AddSurfSpotForm />
-            <Box mt={8}>
-                <SurfSpotsList />
-            </Box>
         </Box>
     );
 };
@@ -47,12 +52,12 @@ const App = () => {
                             }
                         />
                         <Route
-                            path="/spots"
+                            path="/add-spot"
                             element={
                                 <ProtectedRoute>
                                     <>
                                         <NavBar />
-                                        <MainContent />
+                                        <AddSpotContent />
                                     </>
                                 </ProtectedRoute>
                             }

@@ -7,17 +7,20 @@ import {
     Input,
     VStack,
     useToast,
+    Heading,
 } from '@chakra-ui/react';
 import { surfSpotService } from '../../services/surfSpotService';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
-export function AddSurfSpotForm({ onSpotAdded }) {
+export function AddSurfSpotForm() {
     const [name, setName] = useState('');
     const [latitude, setLatitude] = useState('');
     const [longitude, setLongitude] = useState('');
     const [loading, setLoading] = useState(false);
     const { user } = useAuth();
     const toast = useToast();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -50,15 +53,8 @@ export function AddSurfSpotForm({ onSpotAdded }) {
                 duration: 3000,
             });
             
-            // Reset form
-            setName('');
-            setLatitude('');
-            setLongitude('');
-            
-            // Notify parent component
-            if (onSpotAdded) {
-                onSpotAdded();
-            }
+            // Navigate back to the spots list
+            navigate('/');
         } catch (error) {
             toast({
                 title: 'Error adding surf spot',
@@ -72,7 +68,8 @@ export function AddSurfSpotForm({ onSpotAdded }) {
     };
 
     return (
-        <Box maxW="md" mx="auto" mt={8}>
+        <Box maxW="md" mx="auto">
+            <Heading size="lg" mb={6}>Add New Surf Spot</Heading>
             <form onSubmit={handleSubmit}>
                 <VStack spacing={4}>
                     <FormControl isRequired>

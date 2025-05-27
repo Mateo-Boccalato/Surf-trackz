@@ -18,6 +18,11 @@ import {
     ModalBody,
     ModalCloseButton,
     HStack,
+    Spinner,
+    Stat,
+    StatLabel,
+    StatNumber,
+    StatHelpText,
 } from '@chakra-ui/react';
 import { surfSpotService } from '../../services/surfSpotService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -28,6 +33,7 @@ export function SurfSpotsList() {
     const [loading, setLoading] = useState(true);
     const [selectedSpot, setSelectedSpot] = useState(null);
     const [forecast, setForecast] = useState(null);
+    const [spotForecasts, setSpotForecasts] = useState({});
     const { user } = useAuth();
     const toast = useToast();
 
@@ -38,8 +44,21 @@ export function SurfSpotsList() {
     const loadSurfSpots = async () => {
         try {
             const userSpots = await surfSpotService.getUserSurfSpots(user.$id);
-            console.log('Loaded user spots:', userSpots);
             setSpots(userSpots);
+            
+            // Load forecasts for all spots
+            const forecasts = {};
+            for (const spot of userSpots) {
+                try {
+                    const forecastData = await surfSpotService.getForecast(spot.$id);
+                    if (forecastData && forecastData.length > 0) {
+                        forecasts[spot.$id] = forecastData[0]; // Get current conditions
+                    }
+                } catch (error) {
+                    console.error(`Error loading forecast for spot ${spot.name}:`, error);
+                }
+            }
+            setSpotForecasts(forecasts);
         } catch (error) {
             console.error('Error loading spots:', error);
             toast({
@@ -75,11 +94,8 @@ export function SurfSpotsList() {
 
     const handleSpotClick = async (spot) => {
         try {
-            console.log('Handling spot click for:', spot);
             setSelectedSpot(spot);
-            // Load forecast data when a spot is selected
             const forecastData = await surfSpotService.getForecast(spot.$id);
-            console.log('Received forecast data:', forecastData);
             setForecast(forecastData);
         } catch (error) {
             console.error('Error loading forecast:', error);
@@ -93,7 +109,7 @@ export function SurfSpotsList() {
     };
 
     if (loading) {
-        return <Text>Loading...</Text>;
+        return <Box display="flex" justifyContent="center" mt={8}><Spinner /></Box>;
     }
 
     return (
@@ -101,41 +117,71 @@ export function SurfSpotsList() {
             <VStack spacing={4} align="stretch">
                 <Heading size="lg">My Surf Spots</Heading>
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
-                    {spots.map((spot) => (
-                        <Card key={spot.$id} cursor="pointer" onClick={() => handleSpotClick(spot)}>
-                            <CardHeader>
-                                <Heading size="md">{spot.name}</Heading>
-                            </CardHeader>
-                            <CardBody>
-                                <Text>Latitude: {spot.latitude}</Text>
-                                <Text>Longitude: {spot.longitude}</Text>
-                                <Text>Last Updated: {new Date(spot.lastUpdated).toLocaleDateString()}</Text>
-                            </CardBody>
-                            <CardFooter>
-                                <HStack spacing={4} width="100%">
-                                    <Button
-                                        colorScheme="blue"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleSpotClick(spot);
-                                        }}
-                                        flex={1}
-                                    >
-                                        View Forecast
-                                    </Button>
-                                    <Button
-                                        colorScheme="red"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete(spot.$id);
-                                        }}
-                                    >
-                                        Delete
-                                    </Button>
-                                </HStack>
-                            </CardFooter>
-                        </Card>
-                    ))}
+                    {spots.map((spot) => {
+                        const currentConditions = spotForecasts[spot.$id];
+                        return (
+                            <Card key={spot.$id} cursor="pointer" onClick={() => handleSpotClick(spot)}>
+                                <CardHeader>
+                                    <Heading size="md">{spot.name}</Heading>
+                                </CardHeader>
+                                <CardBody>
+                                    {currentConditions ? (
+                                        <VStack spacing={2} align="stretch">
+                                            <Stat>
+                                                <StatLabel>Wave Height</StatLabel>
+                                                <StatNumber>
+                                                    {currentConditions.waveHeight?.noaa 
+                                                        ? `${currentConditions.waveHeight.noaa.toFixed(1)}m`
+                                                        : 'N/A'}
+                                                </StatNumber>
+                                            </Stat>
+                                            <Stat>
+                                                <StatLabel>Wind Speed</StatLabel>
+                                                <StatNumber>
+                                                    {currentConditions.windSpeed?.noaa 
+                                                        ? `${currentConditions.windSpeed.noaa.toFixed(1)}m/s`
+                                                        : 'N/A'}
+                                                </StatNumber>
+                                            </Stat>
+                                            <Stat>
+                                                <StatLabel>Wind Direction</StatLabel>
+                                                <StatNumber>
+                                                    {currentConditions.windDirection?.noaa 
+                                                        ? `${currentConditions.windDirection.noaa.toFixed(0)}°`
+                                                        : 'N/A'}
+                                                </StatNumber>
+                                            </Stat>
+                                        </VStack>
+                                    ) : (
+                                        <Text>Loading conditions...</Text>
+                                    )}
+                                </CardBody>
+                                <CardFooter>
+                                    <HStack spacing={4} width="100%">
+                                        <Button
+                                            colorScheme="blue"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleSpotClick(spot);
+                                            }}
+                                            flex={1}
+                                        >
+                                            View Forecast
+                                        </Button>
+                                        <Button
+                                            colorScheme="red"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(spot.$id);
+                                            }}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </HStack>
+                                </CardFooter>
+                            </Card>
+                        );
+                    })}
                 </SimpleGrid>
             </VStack>
 
